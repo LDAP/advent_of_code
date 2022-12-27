@@ -1,0 +1,43 @@
+# --- Part Two ---
+# Now, you're ready to choose a directory to delete.
+
+# The total disk space available to the filesystem is 70000000. To run the update, you need unused space of at least 30000000. You need to find a directory you can delete that will free up enough space to run the update.
+
+# In the example above, the total size of the outermost directory (and thus the total amount of used space) is 48381165; this means that the size of the unused space must currently be 21618835, which isn't quite the 30000000 required by the update. Therefore, the update still requires a directory with total size of at least 8381165 to be deleted before it can run.
+
+# To achieve this, you have the following options:
+
+# Delete directory e, which would increase unused space by 584.
+# Delete directory a, which would increase unused space by 94853.
+# Delete directory d, which would increase unused space by 24933642.
+# Delete directory /, which would increase unused space by 48381165.
+# Directories e and a are both too small; deleting them would not free up enough space. However, directories d and / are both big enough! Between these, choose the smallest: d, increasing unused space by 24933642.
+
+# Find the smallest directory that, if deleted, would free up enough space on the filesystem to run the update. What is the total size of that directory?
+
+from pathlib import PosixPath as P
+
+t = {P("/"): 0}
+with open("input.txt", "r") as f:
+    c = P("/")
+    for ln in f:
+        match ln.strip().split():
+            case ["$", "cd", "/"]:
+                c = P("/")
+            case ["$", "cd", p]:
+                c = (c / p).resolve()
+            case ["$", "ls"]:
+                pass
+            case ["dir", d]:
+                t[c / d] = int(0)
+            case [s, fl]:
+                t[c / fl] = int(s)
+
+for k in reversed(sorted(t)):
+    v = t[k]
+    p = k.parent
+    if p != k:
+        t[p] -= abs(v)
+
+m = 70000000 + t[P("/")] - 30000000
+print(-sorted([v for _, v in t.items() if v <= m])[-1])
